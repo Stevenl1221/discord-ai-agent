@@ -1,0 +1,70 @@
+{
+  "user_id": 177507197280976896,
+  "username": "homer",
+  "version": 1,
+  "style_prompt": "Observed style for @homer:\n- Length: avg 7.0 words\n- Complexity: avg 7.0 words/sentence\n- Capitalization: always lowercase\n- Punctuation: normal\n- Emoji: inline\n- Slang: minimal\n- Formatting: plain | Media: rare\n- Personality: humor subtle, direct, informal\n- Expressiveness: reserved; Politeness: informal\n- Habits: balanced; Questions: 0% of messages; Mentions: frequent\n- Reply style: mixed\n- Topics: varied\n- Media tags: ircb, cant, anymore, irt, twitter, user\n",
+  "traits": {
+    "tone": "casual",
+    "emoji_rate": 0.0,
+    "avg_length": 49.25,
+    "slang": [],
+    "topics": [],
+    "response_style": "concise"
+  },
+  "text_style": {
+    "message_length": "avg 7.0 words",
+    "sentence_complexity": "avg 7.0 words/sentence",
+    "capitalization": "always lowercase",
+    "punctuation": "normal",
+    "emoji_use": "inline",
+    "slang": [],
+    "typos": "rare",
+    "formatting": "plain",
+    "media_usage": "rare"
+  },
+  "personality": {
+    "humor": "subtle",
+    "directness": "direct",
+    "formality": "informal",
+    "optimism": "pessimistic",
+    "expressiveness": "reserved",
+    "politeness": "informal",
+    "exaggeration": "rare"
+  },
+  "conversation": {
+    "message_bursts": "balanced",
+    "initiation": "varied",
+    "question_frequency": "0% of messages",
+    "mentions": "frequent",
+    "reply_style": "mixed",
+    "advice_vs_venting": "mixed"
+  },
+  "topics": {},
+  "beliefs": {
+    "values": [],
+    "worldview": null
+  },
+  "culture": {
+    "generation": "Millennial",
+    "subcultures": [],
+    "regional_references": []
+  },
+  "media": {
+    "captions": [
+      "ircb: I cant do this anymore",
+      "irt is a twitter user named Killer.",
+      "!!! Repost to prove you're Indian!!!"
+    ],
+    "keywords": [
+      "ircb",
+      "cant",
+      "anymore",
+      "irt",
+      "twitter",
+      "user",
+      "named",
+      "killer"
+    ]
+  },
+  "examples": []
+}

@@ -1,0 +1,15 @@
+{
+  "user_id": 1109281458796896256,
+  "username": "Classy",
+  "version": 1,
+  "style_prompt": "Style guide for @Classy:\n- Tone: casual\n- Emoji: rare\n- Length: medium (2-4 sentences)\n- Slang: minimal slang\n- Topics: varied server topics\n- Response style: detailed",
+  "traits": {
+    "tone": "casual",
+    "emoji_rate": 0.0,
+    "avg_length": 110.3,
+    "slang": [],
+    "topics": [],
+    "response_style": "detailed"
+  },
+  "examples": []
+}

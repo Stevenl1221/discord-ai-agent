@@ -1,34 +1,50 @@
 import os
+import asyncio
+import logging
+from dotenv import load_dotenv
 import discord
-from discord.ext import commands
+from discord import app_commands
 
-# Discord.py 2.0 requires explicit intents; enable message content for commands
+
+logging.basicConfig(level=logging.INFO)
+
+load_dotenv()
+
+TOKEN = os.getenv("DISCORD_TOKEN")
+GUILD_ID = os.getenv("GUILD_ID")
+
 intents = discord.Intents.default()
 intents.message_content = True
 
-# Use when_mentioned so the bot only reacts when pinged
-bot = commands.Bot(command_prefix=commands.when_mentioned, intents=intents)
+class PingClient(discord.Client):
+    def __init__(self, *, intents: discord.Intents):
+        super().__init__(intents=intents)
+        self.tree = app_commands.CommandTree(self)
 
-@bot.event
-async def on_ready():
-    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
-    print('------')
+    async def setup_hook(self):
+        if GUILD_ID:
+            guild = discord.Object(id=int(GUILD_ID))
+            await self.tree.sync(guild=guild)
+            logging.info("Synced commands to guild %s", GUILD_ID)
+        else:
+            await self.tree.sync()
+            logging.info("Synced global commands (may take up to 1 hour)")
 
-@bot.event
-async def on_message(message: discord.Message) -> None:
-    """Respond with "Hello, world!" only when pinged with that phrase."""
-    if message.author.bot:
-        return
-    if bot.user in message.mentions:
-        content = message.content
-        for mention in message.mentions:
-            content = content.replace(mention.mention, '')
-        if content.strip().lower() == 'hello world':
-            await message.channel.send('Hello, world!')
-    # No additional command processing; the bot only reacts to mentions
 
-if __name__ == '__main__':
-    token = os.getenv('DISCORD_TOKEN')
-    if token is None:
-        raise ValueError('DISCORD_TOKEN environment variable not set')
-    bot.run(token)
+client = PingClient(intents=intents)
+
+
+@client.tree.command(name="ping", description="Simple health check")
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message("pong")
+
+
+def main():
+    if not TOKEN:
+        raise SystemExit("DISCORD_TOKEN not set in .env")
+    client.run(TOKEN)
+
+
+if __name__ == "__main__":
+    main()
+
