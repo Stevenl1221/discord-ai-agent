@@ -229,11 +229,8 @@ def extract_rich_traits(texts: List[str], media_captions: Optional[List[str]] = 
             "advice_vs_venting": advice_vs_vent,
         },
         "topics": topics,
-        "beliefs": {
-            # Hard to infer reliably; leaving placeholders unless explicit cues present
-            "values": [],
-            "worldview": None,
-        },
+        # Beliefs & worldview (lightweight heuristics)
+        "beliefs": _infer_beliefs(texts),
         "culture": {
             "generation": generation,
             "subcultures": subcultures,
@@ -244,3 +241,38 @@ def extract_rich_traits(texts: List[str], media_captions: Optional[List[str]] = 
             "keywords": media_keywords,
         },
     }
+
+
+def _infer_beliefs(texts: List[str]) -> Dict[str, Any]:
+    tv = {
+        "kindness": ["be kind", "be nice", "kindness", "respect"],
+        "honesty": ["honest", "truth", "tbh"],
+        "loyalty": ["loyal", "loyalty", "ride or die"],
+        "humor": ["funny", "joke", "meme"],
+        "productivity": ["grind", "hustle", "work", "ship"],
+        "creativity": ["create", "build", "art", "design"],
+        "freedom": ["freedom", "free speech", "liberty"],
+        "learning": ["learn", "study", "research", "read"],
+        "health": ["health", "gym", "sleep"],
+        "friendship": ["friend", "friends", "homies"]
+    }
+    found_vals: List[str] = []
+    low = "\n".join(t.lower() for t in texts)
+    for val, cues in tv.items():
+        if any(c in low for c in cues):
+            found_vals.append(val)
+    # Worldview: rough orientation
+    worldview = None
+    if any(w in low for w in ["lol", "lmao", "bruh", "💀", "😂"]):
+        worldview = "cynical humor with playful tone"
+    pos = sum(low.count(w) for w in ["great", "love", "good", "nice", "awesome"]) \
+        + low.count("😊") + low.count("❤️")
+    neg = sum(low.count(w) for w in ["hate", "bad", "annoying", "worst", "ugh"]) \
+        + low.count("😤") + low.count("💀")
+    if pos > neg * 1.3:
+        worldview = (worldview + ", optimistic") if worldview else "optimistic"
+    elif neg > pos * 1.3:
+        worldview = (worldview + ", skeptical") if worldview else "skeptical"
+    if any(w in low for w in ["ai", "tech", "gpu", "build", "code", "ship"]):
+        worldview = (worldview + ", pragmatic/tech-forward") if worldview else "pragmatic/tech-forward"
+    return {"values": found_vals[:6], "worldview": worldview}

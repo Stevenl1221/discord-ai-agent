@@ -126,8 +126,8 @@ class PersonaCog(commands.Cog):
 
                     await _asyncio.gather(*(_cap(it) for it in items))
 
-                # Refine style via LLM (hierarchical)
-                from ..llm.prompting import build_merge_style_prompt
+                # Refine style via LLM (hierarchical) and infer beliefs
+                from ..llm.prompting import build_merge_style_prompt, build_beliefs_inference_prompt
                 refined_style = None
                 try:
                     guides: List[str] = []
@@ -195,6 +195,31 @@ class PersonaCog(commands.Cog):
                 if refined_style and not refined_style.strip().startswith("[stubbed LLM]"):
                     doc_update["style_prompt"] = refined_style[: min(cfg.style_max_chars, 1200)]
                 doc_update["media"] = {"captions": captions[:20]}
+                # Beliefs inference (LLM JSON)
+                try:
+                    bp = build_beliefs_inference_prompt(user.display_name, texts[-(cfg.create_style_msgs * 2):])
+                    bjson = await _asyncio.to_thread(
+                        llm.complete,
+                        bp,
+                        max_tokens=min(196, cfg.create_max_tokens),
+                        temperature=0.2,
+                        top_p=0.9,
+                        num_ctx=cfg.create_num_ctx,
+                    )
+                    import json as _json
+                    data = _json.loads(bjson.strip().splitlines()[-1]) if bjson else {}
+                    if isinstance(data, dict):
+                        beliefs = doc_update.get("beliefs") or {}
+                        vals = data.get("values") if isinstance(data.get("values"), list) else []
+                        wv = data.get("worldview") if isinstance(data.get("worldview"), str) else None
+                        if vals:
+                            beliefs["values"] = vals[:6]
+                        if wv:
+                            beliefs["worldview"] = wv
+                        if beliefs:
+                            doc_update["beliefs"] = beliefs
+                except Exception:
+                    pass
                 pers.write_json(pers.persona_path(user.id), doc_update)
                 if prog_msg:
                     try:

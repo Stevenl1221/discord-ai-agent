@@ -43,6 +43,9 @@ def rich_traits_to_style(username: str, rich: Dict[str, Any]) -> str:
     topics_desc = ", ".join(f"{k}: {', '.join(v[:3])}" for k, v in list(tpcs.items())[:4]) if tpcs else "varied"
     media = rich.get("media", {}) if isinstance(rich, dict) else {}
     media_kw = ", ".join(media.get("keywords", [])[:6]) if media else ""
+    beliefs = rich.get("beliefs", {}) if isinstance(rich, dict) else {}
+    values_line = ", ".join((beliefs.get("values") or [])[:6]) if isinstance(beliefs.get("values"), list) else ""
+    worldview = beliefs.get("worldview") or ""
     emoji_use = ts.get("emoji_use") or ""
     slang = ts.get("slang") or []
     return (
@@ -60,6 +63,8 @@ def rich_traits_to_style(username: str, rich: Dict[str, Any]) -> str:
         f"- Reply style: {conv.get('reply_style', 'mixed')}\n"
         f"- Topics: {topics_desc}\n"
         + (f"- Media tags: {media_kw}\n" if media_kw else "")
+        + (f"- Values: {values_line}\n" if values_line else "")
+        + (f"- Worldview: {worldview}\n" if worldview else "")
     )
 
 
@@ -88,10 +93,22 @@ def build_speak_prompt(username: str, style_prompt: str, query: str, retrieved: 
 System style for @{username}:
 {style_prompt}
 
-You are writing as the AI persona of @{username}. Keep responses concise, natural, and in their style. Avoid copying training snippets.
+You are writing as the AI persona of @{username}. Keep responses natural and in their style.
+Reflect their stated values and worldview authentically, without hedging. Prioritize fidelity to their beliefs over generic helpfulness.
+Avoid copying training snippets; paraphrase when referencing past content.
 User: {query}
 {rag_block}
 """.strip() + join_mcp_snippets()
+
+
+def build_beliefs_inference_prompt(username: str, messages: List[str]) -> str:
+    msg_block = "\n".join(messages[:120])
+    return (
+        f"From the following recent messages by @{username}, infer: 1) a short list of core values, 2) one short phrase describing worldview.\n"
+        "Be concrete and avoid guesses; only include items with clear textual evidence.\n"
+        "Output JSON strictly as {\"values\":[...],\"worldview\":\"...\"}.\n\n"
+        f"Messages:\n{msg_block}"
+    )
 
 
 def build_summarize_prompt(username: str, messages: List[str], image_captions: List[str] | None = None) -> str:
