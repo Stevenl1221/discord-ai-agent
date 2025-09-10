@@ -68,6 +68,8 @@ class Config:
     summarize_temperature: float = float(os.getenv("SUMMARIZE_TEMPERATURE", "0.2"))
     speak_num_ctx: int = int(os.getenv("SPEAK_NUM_CTX", "1536"))
     summarize_num_ctx: int = int(os.getenv("SUMMARIZE_NUM_CTX", "1024"))
+    # Optional base system prompt prepended to all LLM prompts
+    base_system_prompt: str = os.getenv("BASE_SYSTEM_PROMPT", "").strip()
     # Streaming + early stop for speak
     speak_stream: bool = os.getenv("SPEAK_STREAM", "true").lower() == "true"
     speak_time_budget_seconds: int = int(os.getenv("SPEAK_TIME_BUDGET_SECONDS", "45"))

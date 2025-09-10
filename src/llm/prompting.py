@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Dict, Any
 
 from .mcp_context import fetch_docs_snippets
+from ..config import cfg
 
 
 def join_mcp_snippets() -> str:
@@ -10,6 +11,13 @@ def join_mcp_snippets() -> str:
     if not snips:
         return ""
     return "\n\n[MCP-Docs]\n" + "\n---\n".join(snips)
+
+
+def _with_base_system(text: str) -> str:
+    sp = (cfg.base_system_prompt or "").strip()
+    if not sp:
+        return text
+    return f"{sp}\n\n" + text
 
 
 def style_from_traits(username: str, traits: dict) -> str:
@@ -84,12 +92,12 @@ Return a compact style guide in bullet points, suitable as a system prompt.
 Messages (most recent last):
 {msg_block}
 """.strip()
-    return base + join_mcp_snippets()
+    return _with_base_system(base + join_mcp_snippets())
 
 
 def build_speak_prompt(username: str, style_prompt: str, query: str, retrieved: List[str]) -> str:
     rag_block = "\n\n[Relevant snippets]\n" + "\n---\n".join(retrieved) if retrieved else ""
-    return f"""
+    return _with_base_system(f"""
 System style for @{username}:
 {style_prompt}
 
@@ -98,12 +106,12 @@ Reflect their stated values and worldview authentically, without hedging. Priori
 Avoid copying training snippets; paraphrase when referencing past content.
 User: {query}
 {rag_block}
-""".strip() + join_mcp_snippets()
+""".strip() + join_mcp_snippets())
 
 
 def build_beliefs_inference_prompt(username: str, messages: List[str]) -> str:
     msg_block = "\n".join(messages[:120])
-    return (
+    return _with_base_system(
         f"From the following recent messages by @{username}, infer: 1) a short list of core values, 2) one short phrase describing worldview.\n"
         "Be concrete and avoid guesses; only include items with clear textual evidence.\n"
         "Output JSON strictly as {\"values\":[...],\"worldview\":\"...\"}.\n\n"
@@ -116,7 +124,7 @@ def build_summarize_prompt(username: str, messages: List[str], image_captions: L
     img_block = ""
     if image_captions:
         img_block = "\n\n[Images]\n" + "\n".join(f"- {c}" for c in image_captions)
-    return (
+    return _with_base_system(
         f"You are summarizing the last {len(messages)} messages from @{username}.\n"
         "Produce a concise, content-focused summary that captures what they actually said or asked.\n"
         "Prioritize: key points, questions/requests, decisions, action items, links/references, and any concrete info shared.\n"
@@ -140,7 +148,7 @@ def build_merge_summaries_prompt(
     img_block = ""
     if image_captions:
         img_block = "\n\n[Images]\n" + "\n".join(f"- {c}" for c in image_captions)
-    return (
+    return _with_base_system(
         f"Merge the following partial summaries into a final concise summary for @{username}.\n"
         "Do not repeat bullets. Consolidate overlapping points. Focus on concrete info, questions/requests, decisions, action items, links/references.\n"
         "Avoid tone/style commentary and do not invent details.\n\n"
@@ -158,7 +166,7 @@ def build_merge_style_prompt(username: str, chunk_guides: List[str], media_keywo
     media_line = ""
     if media_keywords:
         media_line = "\nInclude media-related quirks/tags if consistently present: " + ", ".join(media_keywords[:6])
-    return (
+    return _with_base_system(
         f"Merge the following partial style guides for @{username} into one concise persona style guide.\n"
         "Keep bullet format. Prioritize consistent traits across chunks.\n"
         "Do not include contradictions or redundant bullets.\n"
